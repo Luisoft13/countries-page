@@ -1,58 +1,113 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <b-container fluid class="pl-0 pr-0">
+        <div class="content_title">
+          <h2 class="font-weight-bold">Where in the World?</h2>
+        </div>
+      
+        <div style="background:#FAFAFA">
+          <b-row class="content_header">
+            <b-col sm="4" cols="12" class="text-align-left">
+              <b-form-input v-model="countryName" placeholder="Search you country"></b-form-input>
+            </b-col>
+            <b-col sm="3" cols="12">
+              <b-form-select v-model="getCountriesByRegion" placeholder="Filter by Region" :options="options"></b-form-select>
+            </b-col>
+          </b-row>
+          <b-row class="content_body">
+            <b-col
+              v-for="country in countriesTotal"
+              :key="country.alpha2Code"
+              lg="4"
+              xl="3"
+            >
+              <b-card :img-src="country.flag" img-top class="mb-5">
+                <b-card-body>
+                  <h3> {{ country.name}}</h3>
+                  <h5>Population: {{ country.population}}</h5>
+                  <h5>Región: {{ country.region}}</h5>
+                  <h5>Caputal: {{ country.capital}}</h5>
+                </b-card-body>
+              </b-card>
+            </b-col>
+          </b-row>
+        </div>
+  </b-container>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
-  }
+  data() {
+    return {
+      getCountriesByRegion: "",
+      countriesTotal: [],
+      countriesTotalOrigin: [],
+      countryName: "",
+      options: [
+          { value: "", text:'Filter by Region'},
+          { value: "", text: 'Todos' },
+          { value: 'Africa', text: 'Africa' },
+          { value: 'Americas', text: 'Americas' },
+          { value: 'Europe', text: 'Europe' },
+          { value: 'Asia', text: 'Asia' },
+          { value: 'Oceania', text: 'Oceania' },
+          
+        
+        ]
+    }
+  },
+  created() {
+    axios
+      .get("https://restcountries.eu/rest/v2/all")
+      .then((response) => {
+        this.countriesTotal = response.data;
+        this.countriesTotalOrigin = response.data;
+        console.log(response.data)
+      })
+      .catch((error) => 
+        console.log("No se encontró la información", error)
+      );
+  },
+  watch: {
+    countryName(newValue) {
+      this.countriesTotal = this.countriesTotalOrigin
+      if(newValue) {
+        if(this.getCountriesByRegion != "") {
+          this.countriesTotal = this.countriesTotal.filter(
+          (country) => country.region == this.getCountriesByRegion
+        )
+        }
+        this.countriesTotal = this.countriesTotal.filter((country) =>
+          country.name.toLowerCase().includes(newValue) ||
+          country.name.includes(newValue)
+        );
+      }
+    },
+    getCountriesByRegion(newValue) {
+      if(newValue) {
+        this.countriesTotal = this.countriesTotal.filter(
+          (country) => country.region == newValue
+        )
+      }
+    }
+  },
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+.content_title {
+  padding: 20px 80px 20px 80px;
+  -webkit-box-shadow: 3px 3px 5px 6px rgba(0, 0, 0, 0.4);  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow: 3px 3px 5px 6px rgba(0, 0, 0, 0.4);  /* Firefox 3.5 - 3.6 */
+  box-shadow: 3px 3px 5px 6px rgba(0, 0, 0, 0.4);
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.content_header {
+  padding: 20px 80px 20px 80px;
+  justify-content: space-between;
+  margin: 0px;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.content_body {
+  padding: 20px 80px 20px 80px;
+  margin:0px;
 }
 </style>
